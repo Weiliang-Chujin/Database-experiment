@@ -1,0 +1,58 @@
+--1、建立存储过程完成图书管理系统中的借书功能，并调用该存储过程实现借书功能
+create or replace procedure p_borrow(
+p_jylsh in BORROW.借阅流水号%type,
+p_jszh in BORROW.借书证号%type,
+p_tsbh in BORROW.图书编号%type)
+as 
+  v_sfjc BOOK.是否借出%type;
+begin 
+  select 是否借出 into v_sfjc from BOOK where 图书编号=p_tsbh;
+  if v_sfjc='否' then
+    insert into BORROW(借阅流水号,借书证号,图书编号,借书日期) values
+    (p_jylsh,p_jszh,p_tsbh,to_date(to_char(sysdate,'YYYY/MM/DD'),'YYYY/MM/DD'));
+    update BOOK set 是否借出='是' where 图书编号=p_tsbh;
+    commit;
+  else 
+    dbms_output.put_line('该图书已借出！');
+  end if;
+end;
+--1、借书功能的调用
+call p_borrow('7','20051001','1005050');
+
+--2、建立存储过程完成图书管理系统中的预约功能
+create or replace procedure p_ATMENT(
+p_yylsh in ATMENT.预约流水号%type,
+p_jszh in ATMENT.借书证号%type,
+p_isbn in ATMENT.ISBN%type)
+as v_sfjc BOOK.是否借出%type;
+begin
+  select 是否借出 into v_sfjc from BOOK where ISBN=p_isbn;
+  if v_sfjc='是' then
+    insert into ATMENT(预约流水号,借书证号,ISBN,预约时间) values
+    (p_yylsh,p_jszh,p_isbn,to_date(to_char(sysdate,'YYYY/MM/DD'),'YYYY/MM/DD'));
+    commit;
+  else 
+    dbms_output.put_line('该书目有可借图书，请查找');
+  end if;
+end;
+--2、预约功能的调用
+call p_ATMENT('2','20081237','9787508040110');
+
+--3、建立存储过程完成图书管理系统中的还书功能
+create or replace procedure p_return(
+p_jszh in BORROW.借书证号%type,
+p_tsbh in BORROW.图书编号%type,
+p_fkflh in BORROW.罚款分类号%type)
+as v_sfjc BOOK.是否借出%type;
+begin
+  select 是否借出 into v_sfjc from BOOK where 图书编号=p_tsbh;
+  if v_sfjc='是' then
+    update BORROW set 罚款分类号=p_fkflh,归还日期=to_date(to_char(sysdate,'YYYY/MM/DD'),'YYYY/MM/DD')
+    where BORROW.借书证号=p_jszh and BORROW.图书编号=p_tsbh;
+    commit;
+  else 
+    dbms_output.put_line('图书编号输入错误');
+  end if;
+end;
+--3、还书功能调用
+call p_return('20051001','1005050','');

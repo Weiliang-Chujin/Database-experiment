@@ -1,0 +1,26 @@
+drop table ATMENT;
+
+select * from ATMENT;
+
+ALTER TABLE READER ENABLE ROW MOVEMENT;
+
+insert into READER(借书证号,姓名) values('20191208','张三');
+insert into READER(借书证号,姓名) values('20191209','李四');
+commit;
+
+FLASHBACK TABLE READER TO TIMESTAMP TO_TIMESTAMP('2019-12-07 00:00:00','YYYY-MM-DD:HH24:MI:SS');
+
+create role s5120176114_oper;
+grant execute on P_RETURN to s5120176114_oper;
+grant execute on P_ATMENT to s5120176114_oper;
+grant execute on P_BORROW to s5120176114_oper;
+grant connect to s5120176114_oper;
+
+
+
+create user s5120176114_user2 identified by orcl;
+grant s5120176114_oper to s5120176114_user2;
+conn s5120176114_user2/orcl@orcl;
+call s5120176114_user2.P_BORROW(20081237,1005050);
+
+call 5120176114.P_BORROW(20081237,1005050);
